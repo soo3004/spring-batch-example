@@ -16,7 +16,8 @@ import org.springframework.jdbc.core.RowMapper;
 public class Application {
 
     public static void main(String[] args) {
-        ApplicationContext ctx = SpringApplication.run(Application.class, args);
+
+        ApplicationContext ctx = SpringApplication.run(Application.class, new String[] {"pathToFile=sample-data.csv"});
 
         List<Person> results = ctx.getBean(JdbcTemplate.class).query("SELECT first_name, last_name FROM people", new RowMapper<Person>() {
             @Override
