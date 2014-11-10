@@ -1,7 +1,9 @@
-package hello;
+package org.exampledriven.springbatch.runner;
 
 import javax.sql.DataSource;
 
+import org.exampledriven.springbatch.Person;
+import org.exampledriven.springbatch.PersonItemProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -15,34 +17,59 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
+import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourceArrayPropertyEditor;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.io.IOException;
 
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
 
-    // tag::readerwriterprocessor[]
+
+    private Resource[] getResources(String stagingDirectory, String pattern) {
+        ResourceArrayPropertyEditor resourceLoader = new ResourceArrayPropertyEditor();
+        resourceLoader.setAsText("classpath:" + stagingDirectory + "/*" + pattern + "*.csv");
+        Resource[] resources = (Resource[]) resourceLoader.getValue();
+        return resources;
+    }
+
     @Bean
     @StepScope
-    public FlatFileItemReader<Person> reader(@Value("#{jobParameters[pathToFile]}") String pathToFile) {
-        FlatFileItemReader<Person> reader = new FlatFileItemReader<Person>();
-        reader.setResource(new ClassPathResource(pathToFile));
-        reader.setLineMapper(new DefaultLineMapper<Person>() {{
+    public MultiResourceItemReader<Person> reader(@Value("#{jobParameters[inputDirectory]}") String inputDirectory, ApplicationContext applicationContext) throws IOException {
+
+        FlatFileItemReader<Person> delegateReader = new FlatFileItemReader<Person>();
+        delegateReader.setResource(new ClassPathResource(inputDirectory));
+        delegateReader.setLineMapper(new DefaultLineMapper<Person>() {{
             setLineTokenizer(new DelimitedLineTokenizer() {{
-                setNames(new String[] { "firstName", "lastName" });
+                setNames(new String[]{"firstName", "lastName"});
             }});
             setFieldSetMapper(new BeanWrapperFieldSetMapper<Person>() {{
                 setTargetType(Person.class);
             }});
         }});
-        return reader;
+
+//        Resource[] resources = getResources(inputDirectory, "data");
+
+        Resource[] resources = applicationContext.getResources(inputDirectory + "/*data*.csv");
+
+        getResources(inputDirectory, "data");
+
+        MultiResourceItemReader<Person> multiResourceItemReader = new MultiResourceItemReader<Person>();
+        multiResourceItemReader.setResources(resources);
+        multiResourceItemReader.setDelegate(delegateReader);
+
+        return multiResourceItemReader;
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package hello;
+package org.exampledriven.springbatch;
 
 import org.springframework.batch.item.ItemProcessor;
 

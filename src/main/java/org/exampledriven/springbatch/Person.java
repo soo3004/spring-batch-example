@@ -1,4 +1,4 @@
-package hello;
+package org.exampledriven.springbatch;
 
 public class Person {
     private String lastName;
