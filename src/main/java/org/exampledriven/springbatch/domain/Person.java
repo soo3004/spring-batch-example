@@ -1,16 +1,18 @@
-package org.exampledriven.springbatch;
+package org.exampledriven.springbatch.domain;
 
-public class Person {
+import org.springframework.core.io.Resource;
+
+public class Person extends BaseResourceAware {
     private String lastName;
     private String firstName;
 
     public Person() {
-
     }
 
-    public Person(String firstName, String lastName) {
+    public Person(String firstName, String lastName, Resource resource) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.setResource(resource);
     }
 
     public void setFirstName(String firstName) {
@@ -31,7 +33,11 @@ public class Person {
 
     @Override
     public String toString() {
-        return "firstName: " + firstName + ", lastName: " + lastName;
+        String s = "firstName: " + firstName + ", lastName: " + lastName;
+        if (getResource() != null) {
+            s += ", resource: " + getResource().getFilename();
+        }
+        return s;
     }
 
 }

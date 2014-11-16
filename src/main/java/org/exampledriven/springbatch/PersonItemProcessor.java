@@ -1,5 +1,6 @@
 package org.exampledriven.springbatch;
 
+import org.exampledriven.springbatch.domain.Person;
 import org.springframework.batch.item.ItemProcessor;
 
 public class PersonItemProcessor implements ItemProcessor<Person, Person> {
@@ -9,7 +10,7 @@ public class PersonItemProcessor implements ItemProcessor<Person, Person> {
         final String firstName = person.getFirstName().toUpperCase();
         final String lastName = person.getLastName().toUpperCase();
 
-        final Person transformedPerson = new Person(firstName, lastName);
+        final Person transformedPerson = new Person(firstName, lastName, person.getResource());
 
         System.out.println("Converting (" + person + ") into (" + transformedPerson + ")");
 
